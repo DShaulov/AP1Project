@@ -1,7 +1,9 @@
 /*
  * animaly_detection_util.cpp
  *
- * Author: 317005403, David Shaulov
+ * Authors:
+ * 317005403, David Shaulov,
+ *  
  */
 
 #include <math.h>
@@ -79,10 +81,13 @@ Line linear_reg(Point** points, int size){
 
 // returns the deviation between point p and the line equation of the points
 float dev(Point p,Point** points, int size){
-	return 0;
+	Line line = linear_reg(points, size);
+    return dev(p, line);
 }
 
 // returns the deviation between point p and the line
 float dev(Point p,Line l){
-	return 0;
+	float expectedY = l.f(p.x);
+    float actualY = p.y;
+    return abs(expectedY - actualY);
 }
