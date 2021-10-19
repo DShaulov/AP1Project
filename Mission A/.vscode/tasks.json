@@ -5,8 +5,10 @@
             "label": "C/C++: g++.exe build active file",
             "command": "C:\\TDM-GCC-64\\bin\\g++.exe",
             "args": [
+                "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "anomaly_detection_util.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],

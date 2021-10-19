@@ -10,6 +10,7 @@
 #include "anomaly_detection_util.h"
 #include <iostream>
 
+// Calculates the average value of the float array
 float avg(float* x, int size){
 	float sum = 0;
 	for (int i = 0; i < size; i++) {
@@ -18,14 +19,21 @@ float avg(float* x, int size){
     float average = static_cast<float>(sum) / static_cast<float>(size);
     return average;
 }
-double round2DecimalPts(float f) {
-    double num = (int)(f * 100 + 0.5);
-    double rounded = (double)num / 100;
+// Rounds a float to 3 decimal places
+double round3DecimalPts(float f) {
+    double num = (int)(f * 1000 + 0.5);
+    double rounded = (double)num / 1000;
     return rounded;
 }
 
 // returns the variance of X and Y
 float var(float* x, int size){
+    if (size == 0) {
+        throw "No points";
+    }
+    if (size == 1) {
+        throw "Must enter atleast 2 values";
+    }
 	float sumOfSquares = 0;
 	for (int i = 0; i < size; i++) {
 		sumOfSquares += pow(x[i], 2);
@@ -37,6 +45,12 @@ float var(float* x, int size){
 
 // returns the covariance of X and Y
 float cov(float* x, float* y, int size){
+    if (size == 0) {
+        throw "No points";
+    }
+    if (size == 1) {
+        throw "Must enter atleast 2 values each";
+    }
 	float meanOfX = avg(x, size);
     float meanOfY = avg(y, size);
     float covSum = 0;
@@ -55,7 +69,7 @@ float pearson(float* x, float* y, int size){
 // performs a linear regression and returns the line equation
 Line linear_reg(Point** points, int size){
 
-	if (*points == nullptr) {
+	if (size == 0 || points == NULL) {
         throw "Empty points array";
     }
     float* xVals = new float[size];
@@ -66,7 +80,6 @@ Line linear_reg(Point** points, int size){
         yVals[i] = p.y;
     }
     float avgX = avg(xVals, size);
-    // E: 11.2
     float avgY = avg(yVals, size);
     float covAll = cov(xVals, yVals, 10);
     float varX = var(xVals, 10);
@@ -81,13 +94,18 @@ Line linear_reg(Point** points, int size){
 
 // returns the deviation between point p and the line equation of the points
 float dev(Point p,Point** points, int size){
+    if (size == 0 || points == NULL) {
+        throw "No points";
+    }
 	Line line = linear_reg(points, size);
     return dev(p, line);
 }
 
 // returns the deviation between point p and the line
 float dev(Point p,Line l){
-	float expectedY = l.f(p.x);
-    float actualY = p.y;
-    return abs(expectedY - actualY);
+	double expectedY = l.f(p.x);
+    double actualY = p.y;
+    double difference = fabs(expectedY - actualY);
+    double rounded = round3DecimalPts(difference);
+    return rounded;
 }
