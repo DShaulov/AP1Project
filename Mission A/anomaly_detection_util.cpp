@@ -2,7 +2,8 @@
  * animaly_detection_util.cpp
  *
  * Authors:
- * 317005403, David Shaulov,
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
  *  
  */
 
@@ -16,16 +17,9 @@ float avg(float* x, int size){
 	for (int i = 0; i < size; i++) {
 		sum += x[i];
 	}
-    float average = static_cast<float>(sum) / static_cast<float>(size);
+    float average = sum / size;
     return average;
 }
-// Rounds a float to 3 decimal places
-double round3DecimalPts(float f) {
-    double num = (int)(f * 1000 + 0.5);
-    double rounded = (double)num / 1000;
-    return rounded;
-}
-
 // returns the variance of X and Y
 float var(float* x, int size){
     if (size == 0) {
@@ -38,8 +32,9 @@ float var(float* x, int size){
 	for (int i = 0; i < size; i++) {
 		sumOfSquares += pow(x[i], 2);
 	}
-	float meanSquared = pow(avg(x, size), 2);
-	float equationFirstPart = ((1.0 / size) * sumOfSquares);
+    float mean = avg(x, size);
+    float meanSquared = mean * mean;
+	float equationFirstPart = sumOfSquares / size;
 	return (equationFirstPart - meanSquared);
 }
 
@@ -105,7 +100,9 @@ float dev(Point p,Point** points, int size){
 float dev(Point p,Line l){
 	double expectedY = l.f(p.x);
     double actualY = p.y;
-    double difference = fabs(expectedY - actualY);
-    double rounded = round3DecimalPts(difference);
-    return rounded;
+    double difference = expectedY - actualY;
+    if (difference < 0) {
+        return -difference;
+    }
+    return difference;
 }
