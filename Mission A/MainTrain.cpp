@@ -10,6 +10,8 @@ bool wrong(float val, float expected){
 
 // this is a simple test to put you on the right track
 int main(){
+
+
 	const int N=10;
 
 	float x1[]={1,2,3,4,5,6,7,8,9,10};
