@@ -4,7 +4,7 @@
  * Authors:
  * 317005403 David Shaulov,
  * 205544109 Yonatan Zilber
- *  first try
+ *  
  */
 
 #include <math.h>
