@@ -26,9 +26,6 @@ float var(float* x, int size){
     if (size == 0) {
         throw "No points";
     }
-    if (size == 1) { // change it to zreo? or else, it can run normally
-        throw "Must enter atleast 2 values";
-    }
 	float sumOfSquares = 0;
 	for (int i = 0; i < size; i++) {
 		sumOfSquares += pow(x[i], 2);
@@ -36,16 +33,17 @@ float var(float* x, int size){
     float mean = avg(x, size);
     float meanSquared = mean * mean;
 	float equationFirstPart = sumOfSquares / size;
-	return abs((equationFirstPart - meanSquared));
+    float result = equationFirstPart - meanSquared;
+    if (result < 0) { // I replaced abs() because it was causing 5 tests to fail in practice mode.
+        return -result;
+    }
+	return result;
 }
 
 // returns the covariance of X and Y
 float cov(float* x, float* y, int size){
     if (size == 0) {
         throw "No points";
-    }
-    if (size == 1) { // change it to zreo? or else, it can run normally
-        throw "Must enter atleast 2 values each";
     }
 	float meanOfX = avg(x, size);
     float meanOfY = avg(y, size);
@@ -65,7 +63,7 @@ float pearson(float* x, float* y, int size){
 // performs a linear regression and returns the line equation
 Line linear_reg(Point** points, int size){
 
-	if (size == 0 || points == NULL) { // I think it should be nullptr, because NULL has value 0
+	if (size == 0 || points == nullptr) {
         throw "Empty points array";
     }
     float* xVals = new float[size];
@@ -77,10 +75,10 @@ Line linear_reg(Point** points, int size){
     }
     float avgX = avg(xVals, size);
     float avgY = avg(yVals, size);
-    float covAll = cov(xVals, yVals, 10); // why is it 10 and not the var 'size'? 
-    float varX = var(xVals, 10); // tha same
-    float varY = var(yVals, 10); //the same
-    float a = covAll / varX; // will it for sure return float and not int? just want to make sure
+    float covAll = cov(xVals, yVals, size);
+    float varX = var(xVals, size);
+    float varY = var(yVals, size);
+    float a = covAll / varX; // will it for sure return float and not int? just want to make sure :: Yes
     float b = avgY - (a * avgX);
     delete [] xVals;
     delete [] yVals;
@@ -90,7 +88,7 @@ Line linear_reg(Point** points, int size){
 
 // returns the deviation between point p and the line equation of the points
 float dev(Point p,Point** points, int size){
-    if (size == 0 || points == NULL) { // nullptr?
+    if (size == 0 || points == nullptr) {
         throw "No points";
     }
 	Line line = linear_reg(points, size);
@@ -103,7 +101,7 @@ float dev(Point p,Line l){
     float actualY = p.y;
     float difference = expectedY - actualY;
     if (difference < 0) {
-        return -difference; // maybe we should use absoult value?
+        return -difference; // maybe we should use absoult value? :: Tried it with abs in an earlier version, was failing one of the checks for some reason
     }
     return difference;
 }
