@@ -1,10 +1,10 @@
 /*
- * animaly_detection_util.cpp
+ * anomaly_detection_util.cpp
  *
  * Authors:
  * 317005403 David Shaulov,
  * 205544109 Yonatan Zilber
- *  first try
+ * 
  */
 
 #include <math.h>
@@ -81,8 +81,8 @@ Line linear_reg(Point** points, int size){
     float varY = var(yVals, 10);
     float a = covAll / varX;
     float b = avgY - (a * avgX);
-    delete[] xVals;
-    delete[] yVals;
+    delete [] xVals;
+    delete [] yVals;
     Line line = Line(a, b);
     return line;
 }
@@ -98,9 +98,9 @@ float dev(Point p,Point** points, int size){
 
 // returns the deviation between point p and the line
 float dev(Point p,Line l){
-	double expectedY = l.f(p.x);
-    double actualY = p.y;
-    double difference = expectedY - actualY;
+	float expectedY = l.f(p.x);
+    float actualY = p.y;
+    float difference = expectedY - actualY;
     if (difference < 0) {
         return -difference;
     }
