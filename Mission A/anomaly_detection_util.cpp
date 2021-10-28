@@ -24,7 +24,7 @@ float avg(float* x, int size){
 // returns the variance of X and Y
 float var(float* x, int size){
     if (size == 0) {
-        throw "No points";
+        throw "No points"; // there is no var for 0 points
     }
 	float sumOfSquares = 0;
 	for (int i = 0; i < size; i++) {
@@ -41,9 +41,11 @@ float var(float* x, int size){
 }
 
 // returns the covariance of X and Y
+// we used the formula: 
+//COV(X,Y) = E((X-E(X))Y-E(Y)) of final sample so E(X) is simple avarage.
 float cov(float* x, float* y, int size){
     if (size == 0) {
-        throw "No points";
+        throw "No points"; // there isn't cov for 0 points
     }
 	float meanOfX = avg(x, size);
     float meanOfY = avg(y, size);
@@ -58,14 +60,16 @@ float cov(float* x, float* y, int size){
 // returns the Pearson correlation coefficient of X and Y
 float pearson(float* x, float* y, int size){
 	return (cov(x, y, size) / (sqrt(var(x, size)) * sqrt(var(y, size))));
+    // from the formula: Pearson = COV(X,Y)/(VAR(X)^0.5*VAR(Y)^0.5)
 }
 
 // performs a linear regression and returns the line equation
 Line linear_reg(Point** points, int size){
 
 	if (size == 0 || points == nullptr) {
-        throw "Empty points array";
+        throw "Empty points array"; // cant create line
     }
+    // get all points x and y values to array
     float* xVals = new float[size];
     float* yVals = new float[size];
     for (int i = 0; i < size; i++) {
@@ -73,13 +77,17 @@ Line linear_reg(Point** points, int size){
         xVals[i] = p.x;
         yVals[i] = p.y;
     }
+    // find x and y axis avarage, and use the formula to create line
+    // the formula: y = ax+b, when a = COV (X,Y)/VAR(X), and b = avgY - a*avgX
     float avgX = avg(xVals, size);
     float avgY = avg(yVals, size);
+
     float covAll = cov(xVals, yVals, size);
     float varX = var(xVals, size);
     float varY = var(yVals, size);
     float a = covAll / varX; // will it for sure return float and not int? just want to make sure :: Yes
     float b = avgY - (a * avgX);
+    // free memory:
     delete [] xVals;
     delete [] yVals;
     Line line = Line(a, b);
@@ -101,7 +109,7 @@ float dev(Point p,Line l){
     float actualY = p.y;
     float difference = expectedY - actualY;
     if (difference < 0) {
-        return -difference; // maybe we should use absoult value? :: Tried it with abs in an earlier version, was failing one of the checks for some reason
+        return -difference; 
     }
     return difference;
 }
