@@ -12,6 +12,8 @@
 #include "anomaly_detection_util.h"
 #include <iostream>
 
+
+
 // Calculates the average value of the float array
 float avg(float* x, int size){
 	float sum = 0;
@@ -57,6 +59,13 @@ float cov(float* x, float* y, int size){
 
 // returns the Pearson correlation coefficient of X and Y
 float pearson(float* x, float* y, int size){
+    // Return 0 in case of division by 0
+    if (sqrt(var(x, size)) == 0) {
+        return 0;
+    }
+    if (sqrt(var(y, size)) == 0) {
+        return 0;
+    }
 	return (cov(x, y, size) / (sqrt(var(x, size)) * sqrt(var(y, size))));
 }
 
@@ -78,7 +87,13 @@ Line linear_reg(Point** points, int size){
     float covAll = cov(xVals, yVals, size);
     float varX = var(xVals, size);
     float varY = var(yVals, size);
-    float a = covAll / varX; // will it for sure return float and not int? just want to make sure :: Yes
+    float a;
+    if (varX == 0) {
+        a = 0;
+    }
+    else {
+        a = covAll / varX;
+    }
     float b = avgY - (a * avgX);
     delete [] xVals;
     delete [] yVals;
@@ -97,9 +112,9 @@ float dev(Point p,Point** points, int size){
 
 // returns the deviation between point p and the line
 float dev(Point p,Line l){
-	float expectedY = l.f(p.x);
-    float actualY = p.y;
-    float difference = expectedY - actualY;
+	double expectedY = l.f(p.x);
+    double actualY = p.y;
+    double difference = expectedY - actualY;
     if (difference < 0) {
         return -difference; // maybe we should use absoult value? :: Tried it with abs in an earlier version, was failing one of the checks for some reason
     }
