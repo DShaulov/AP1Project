@@ -8,6 +8,8 @@ using namespace std;
 class TimeSeries{
 private:
 	map<string, vector<float>> m;
+	int numOfCols;
+	int numOfRows;
 public:
 	/**
 	 * Construct a new Time Series object
@@ -16,7 +18,11 @@ public:
 	/**
 	 * Get a specific entry 
 	 */
-	float getEntry(string category, int timeStep);
+	float getEntry(string feature, int timeStep);
+	/**
+	 * Returns a vector of all features
+	 */
+	vector<string> getFeatures();
 };
 
 

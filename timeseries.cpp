@@ -8,7 +8,7 @@ using namespace std;
 /**
  * @brief Construct a new Time Series:: Time Series object
  * Reads from provided CSV file and writes the data to a std::map.
- * Keys of map are the categories as strings and the values are the measurements at each time-step as vectors.
+ * Keys of map are the features as strings and the values are the measurements at each time-step as vectors.
  * For example, if the CSV file is:
  * Time (seconds),Altitude (feet),Air Speed (knots),Heading (deg)
  * 0.1,12000.2,250,45.0
@@ -27,38 +27,59 @@ TimeSeries::TimeSeries(const char* CSVfileName){
     }
     file.clear();
     file.seekg(0);
-    vector<string> categories(numOfCols);
-    vector<vector<float>> rowEntries(numOfCols);
+    vector<string> features(numOfCols);
+    vector<vector<float>> entries(numOfCols);
     for (int i = 0; i < numOfCols; i++) {
-        rowEntries[i].resize(numOfRows - 1);
+        entries[i].resize(numOfRows - 1);
     }
     string entry;
     for (int i = 0; i < numOfRows; i++) {
         for (int j = 0; j < numOfCols; j++) {
-            // Case where its the category row
+            // Case where its the feature row
             if (i == 0) {
                 if (j == numOfCols - 1) {
                     getline(file, entry);
-                    categories[j] = entry;
+                    features[j] = entry;
                     continue;
                 }
                 getline(file, entry, ',');
-                categories[j] = entry;
+                features[j] = entry;
                 continue;
             }
             if (j == numOfCols - 1) {
                     getline(file, entry);
                     float entryAsFloat = stof(entry);
-                    rowEntries[j][i-1] = entryAsFloat;
+                    entries[j][i-1] = entryAsFloat;
                     continue;
             }
             getline(file, entry, ',');
             float entryAsFloat = stof(entry);
-            rowEntries[j][i-1] = entryAsFloat;
+            entries[j][i-1] = entryAsFloat;
         }
     }
     for (int i = 0; i < numOfCols; i++) {
-        pair<string, vector<float>> p = make_pair(categories[i], rowEntries[i]);
+        pair<string, vector<float>> p = make_pair(features[i], entries[i]);
         m.insert(p);
     }
+    this->numOfCols = numOfCols;
+    this->numOfRows = numOfRows;
+}
+
+/**
+ * Returns the entry from the specified feature at the specified time-step
+ */
+float TimeSeries::getEntry(string feature, int timeStep) {
+    return m[feature][timeStep];
+}
+
+/**
+ * Returns a vector of all features
+ */
+vector<string> TimeSeries::getFeatures() {
+    vector<string> features;
+    for (map<string, vector<float>>::iterator iter = m.begin(); iter != m.end(); iter++) {
+        string feature = iter->first;
+        features.push_back(feature);
+    }
+    return features;
 }
