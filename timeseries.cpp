@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 
+
 using namespace std;
 
 /**
@@ -83,3 +84,24 @@ vector<string> TimeSeries::getFeatures() {
     }
     return features;
 }
+vector<float> TimeSeries::getFeatureData(string feature) {
+    vector<float> vec =  m[feature];
+    //cout<<m[feature]<< endl;
+    cout << "Output of begin and end: \n";
+    for (auto i = vec.begin(); i != vec.end(); ++i)
+        cout << *i << " "<<endl;
+    //float* toRet = vec.data();
+    return vec;
+
+}
+
+
+// return the number of types of parameters (like time, altitude etc.)
+int TimeSeries::getNumOfCols(){
+
+    return numOfCols;
+}
+// return the number of information dots we have (for example: if time is 0.1 0.2 0.3 0.4 it will return 4)
+	int TimeSeries::getNumOfRows(){
+        return numOfRows-1;
+    }

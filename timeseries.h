@@ -2,6 +2,8 @@
 #define TIMESERIES_H
 #include <map>
 #include <vector>
+#include <iostream>
+
 
 using namespace std;
 
@@ -23,6 +25,11 @@ public:
 	 * Returns a vector of all features
 	 */
 	vector<string> getFeatures();
+
+	int getNumOfCols();
+	int getNumOfRows();
+	vector<float> getFeatureData(string feature);
+
 };
 
 
