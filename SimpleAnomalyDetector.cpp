@@ -44,7 +44,7 @@ void SimpleAnomalyDetector::learnNormal(const TimeSeries &ts)
 
 	float *x;
 	float *y;
-
+	// runs on all features from 1 to N, with dummy var i 
 	for (auto i = features.begin(); i != features.end(); ++i)
 	{
 		float m = 0;
@@ -55,6 +55,8 @@ void SimpleAnomalyDetector::learnNormal(const TimeSeries &ts)
 		float *iFeature = vec.data();
 		auto j = i;
 		++j;
+			// runs on all features from i+1 to N, with dummy var j
+
 		for (j; j != features.end(); ++j)
 		{
 			int l = 0;

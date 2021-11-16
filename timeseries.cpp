@@ -84,6 +84,8 @@ vector<string> TimeSeries::getFeatures() {
     }
     return features;
 }
+
+// returns the vector of one feature
 vector<float> TimeSeries::getFeatureData(string feature) {
     vector<float> vec =  m[feature];
     //cout<<m[feature]<< endl;

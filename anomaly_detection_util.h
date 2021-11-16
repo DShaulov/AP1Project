@@ -42,6 +42,8 @@ float dev(Point p,Point** points, int size);
 
 // returns the deviation between point p and the line
 float dev(Point p,Line l);
+
+//returns the distance of the farthest point which create line with the method linear_reg
 float farestPoint(float* x, float* y, int size, Line l);
 
 #endif

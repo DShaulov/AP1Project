@@ -158,7 +158,7 @@ float dev(Point p, Line l)
     }
     return difference;
 }
-
+//returns the distance of the farthest point which create line with the method linear_reg
 float farestPoint(float *x, float *y, int size, Line l)
 {
     float max = 0;

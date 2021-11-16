@@ -25,9 +25,12 @@ public:
 	 * Returns a vector of all features
 	 */
 	vector<string> getFeatures();
-
+	
+	//return the number of cols (features) and rows (lines of data for all features)
 	int getNumOfCols();
 	int getNumOfRows();
+
+	// returns the vector of one feature
 	vector<float> getFeatureData(string feature);
 
 };
