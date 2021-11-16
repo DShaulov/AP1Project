@@ -87,9 +87,9 @@ vector<string> TimeSeries::getFeatures() {
 vector<float> TimeSeries::getFeatureData(string feature) {
     vector<float> vec =  m[feature];
     //cout<<m[feature]<< endl;
-    cout << "Output of begin and end: \n";
-    for (auto i = vec.begin(); i != vec.end(); ++i)
-        cout << *i << " "<<endl;
+   // cout << "Output of begin and end: \n";
+   // for (auto i = vec.begin(); i != vec.end(); ++i)
+     //   cout << *i << " "<<endl;
     //float* toRet = vec.data();
     return vec;
 

@@ -1,10 +1,9 @@
-
-
 #ifndef SIMPLEANOMALYDETECTOR_H_
 #define SIMPLEANOMALYDETECTOR_H_
 
 #include "anomaly_detection_util.h"
 #include "AnomalyDetector.h"
+//#include "timeseries.h"
 #include <vector>
 #include <algorithm>
 #include <string.h>
@@ -27,9 +26,10 @@ public:
 	virtual void learnNormal(const TimeSeries& ts);
 	virtual vector<AnomalyReport> detect(const TimeSeries& ts);
 
-	vector<correlatedFeatures> getNormalModel(){
-		return cf;
-	}
+	vector<correlatedFeatures> getNormalModel();
+		
+	
+
 
 };
 
