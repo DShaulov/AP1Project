@@ -104,6 +104,16 @@ int TimeSeries::getNumOfCols(){
     return numOfCols;
 }
 // return the number of information dots we have (for example: if time is 0.1 0.2 0.3 0.4 it will return 4)
-	int TimeSeries::getNumOfRows(){
-        return numOfRows-1;
+int TimeSeries::getNumOfRows(){
+    return numOfRows-1;
+}
+
+
+vector<vector<float>> TimeSeries::getMatrix() {
+    vector<vector<float>> matrix;
+    vector<string> allFeatures = getFeatures();
+    for (int i = 0; i < allFeatures.size(); i++) {
+        matrix.push_back(m[allFeatures[i]]);
     }
+    return matrix;
+}

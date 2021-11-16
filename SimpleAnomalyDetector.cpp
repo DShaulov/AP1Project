@@ -1,10 +1,13 @@
 
 #include "SimpleAnomalyDetector.h"
 
+
 SimpleAnomalyDetector::SimpleAnomalyDetector()
 {
 	vector<correlatedFeatures> vec;
 	this->cf = vec;
+	this->correlationThreshhold = 0.75;
+	this->distanceThreshholdMult = 1.5;
 }
 
 SimpleAnomalyDetector::~SimpleAnomalyDetector()
@@ -12,92 +15,70 @@ SimpleAnomalyDetector::~SimpleAnomalyDetector()
 	// TODO Auto-generated destructor stub
 }
 
-//not finished yet. 
-// MUST REMEMBER: CHECK MEMORY ALLOCATION, WHAT SHOULD BE DELEETED ETC.
-void SimpleAnomalyDetector::learnNormal(const TimeSeries &ts)
+/**
+ * Potential Problems:
+ * The correlation is always saved as positive because of absolute value, maybe should store negative ones as negative?
+ */
+void SimpleAnomalyDetector::learnNormal(const TimeSeries& ts)
 {
-	// TODO Auto-generated destructor stub
 	TimeSeries *ts1 = new TimeSeries(ts);
-	int length = ts1->getNumOfRows();
+	vector<vector<float>> entryMatrix = ts1->getMatrix();
 	vector<string> features = ts1->getFeatures();
-	/*cout<<ts1->getNumOfCols()<<endl;
-        cout<<ts1->getNumOfRows()<<endl;
-        vector<float> times;
-        times = ts1->getFeatureData("Time (seconds)");
-        float* times1 = times.data();
-        cout<<times1[3]<<endl;*/
-	//	cout << "Output of begin and end: \n";
 
-	//for (auto k = features.begin(); k != features.end(); ++k)
-		// cout <<"k is " <<*k << " \n";
-		//cout << "Output of begin and end: \n";
-		for (int k =0; k < features.size(); k++)
-		{
-			//auto m = k;
-			//m++;
-			//for (m; m != features.crend(); m++)
-			{
-				 cout <<"  m is " << " " <<" *  "<<"k is " <<features.at(k) << " \n";
+	// For each feature, go over all other features and find the one that is collrelated the most.
+	// Add them to the vector of correlated features
+	for (int i = 0; i < features.size(); i++) {
+		string firstFeature = features[i];
+		string secondFeature;
+		float prevMaxCorrelation = 0;
+		for (int j = i + 1; j < features.size(); j++) {
+			// &entryMatrix[j][0] is a trick to convert vector<float> to float *
+			float absolutePearson = abs(pearson(&entryMatrix[i][0], &entryMatrix[j][0], entryMatrix[i].size()));
+			if (absolutePearson > prevMaxCorrelation) {
+				prevMaxCorrelation = absolutePearson;
+				secondFeature = features[j];
 			}
 		}
-
-
-	float *x;
-	float *y;
-	// runs on all features from 1 to N, with dummy var i 
-	for (auto i = features.begin(); i != features.end(); ++i)
-	{
-		float m = 0;
-
-		int c = -1;
-		string feature;
-		vector<float> vec = ts1->getFeatureData(*i);
-		float *iFeature = vec.data();
-		auto j = i;
-		++j;
-			// runs on all features from i+1 to N, with dummy var j
-
-		for (j; j != features.end(); ++j)
-		{
-			int l = 0;
-			vector<float> vec = ts1->getFeatureData(*j);
-			float *jFeature = vec.data();
-			float p = pearson(iFeature, jFeature, length);
-			p = abs(p);
-			if (p > m)
-			{
-				m = p;
-				c = l;
-				feature = *j;
-				x = iFeature;
-				y = jFeature;
-				//delete[] jFeature;
-			}
-			l++;
+		// Check that the features are not too weakly correlated
+		if (prevMaxCorrelation < correlationThreshhold) {
+			continue;
 		}
-		if (c != -1)
-		{
-			struct correlatedFeatures cf1;
-			cf1.feature1 = *i;
-			cf1.feature2 = feature;
-			cf1.corrlation = m;
-			cf1.lin_reg = linear_reg(x, y, length);
-			float far1 = farestPoint(x,y,length, cf1.lin_reg);
-			float far = 1.1*far1;
-			cf1.threshold = far;
-			cout << "corrlated  " << *i << "   " << feature << endl;
-			this->cf.push_back(cf1);
-			//delete cf1;
-		}
-		//delete[] iFeature;
+		correlatedFeatures relatedFeaturePair;
+		relatedFeaturePair.feature1 = firstFeature;
+		relatedFeaturePair.feature2 = secondFeature;
+		relatedFeaturePair.corrlation = prevMaxCorrelation;
+		vector<float> firstFeatureData = ts1->getFeatureData(firstFeature);
+		vector<float> secondFeatureData = ts1->getFeatureData(secondFeature);
+		relatedFeaturePair.lin_reg = linear_reg(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size());
+		relatedFeaturePair.threshold = farestPoint(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size(), relatedFeaturePair.lin_reg);
+		cf.push_back(relatedFeaturePair);
 	}
-	//delete[] x;
-	//delete[] y;
 }
+
 
 vector<AnomalyReport> SimpleAnomalyDetector::detect(const TimeSeries &ts)
 {
-	// TODO Auto-generated destructor stub
+	vector<AnomalyReport> reportVector;
+	TimeSeries *ts1 = new TimeSeries(ts);
+	// For each pair of correlated features, go over every row in the time series, 
+	for (int i = 0; i < cf.size(); i++) {
+		correlatedFeatures featurePair = cf[i];
+		vector<float> firstFeatureData = ts1->getFeatureData(featurePair.feature1);
+		vector<float> secondFeatureData = ts1->getFeatureData(featurePair.feature2);
+		int dataSize = firstFeatureData.size();
+		for (int j = 0; j < dataSize; j++) {
+			Point dataPoint(firstFeatureData[j], secondFeatureData[j]);
+			float distanceFromLine = dev(dataPoint, featurePair.lin_reg);
+			// If distance from the linear regression line is larger than expected, create anomaly report
+			// Comparing distanceFromLine > featurePair.threshhold is too sensitive
+			float threshhold = distanceThreshholdMult * featurePair.threshold;
+			if (distanceFromLine > threshhold) {
+				AnomalyReport report(featurePair.feature1 + "-" + featurePair.feature2, j + 1);
+				reportVector.push_back(report);
+			}
+		}
+	}
+	return reportVector;
 }
 
 vector<correlatedFeatures> SimpleAnomalyDetector::getNormalModel()

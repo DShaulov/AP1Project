@@ -33,6 +33,11 @@ public:
 	// returns the vector of one feature
 	vector<float> getFeatureData(string feature);
 
+	/**
+	 * Returns the CSV data as a 2D vector/ maxtrix
+	 */
+	vector<vector<float>> getMatrix();
+
 };
 
 

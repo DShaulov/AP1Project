@@ -131,8 +131,12 @@ Line linear_reg(float *x, float *y, int size)
     {
         ps[i] = new Point(x[i], y[i]);
     }
-
-    return linear_reg(ps, size);
+    Line l = linear_reg(ps, size);
+    // Free memory allocated for points
+    for (int i = 0; i < size; i++) {
+        delete ps[i];
+    }
+    return l;
 }
 
 // returns the deviation between point p and the line equation of the points
