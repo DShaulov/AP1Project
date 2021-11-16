@@ -1,3 +1,13 @@
+/**
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
+ * 
+ */
+
+
 #include "timeseries.h"
 #include <stdio.h>
 #include <fstream>
