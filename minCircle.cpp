@@ -1,5 +1,6 @@
 #include "minCircle.h"
 #include <stdlib.h>
+#include <vector>
 #include <math.h>
 
 /**
@@ -8,7 +9,9 @@
 Circle findMinCircle(Point** points,size_t size) {
     vector<Point> pointsAsVector;
     for (int i = 0; i < size; i++) {
-        pointsAsVector.push_back(*points[i]);
+        Point *p = points[i];
+        Point px(p->x, p->y);
+        pointsAsVector.push_back(px);
     }
     vector<Point> pointsOnBoundry;
     return emoWelzlAlgo(pointsAsVector, pointsOnBoundry, size);
@@ -49,8 +52,33 @@ Circle createCircleFrom2Points(Point p1, Point p2) {
     Circle c(Point(midwayX, midwayY), radius);
     return c;
 }
-Circle createCircleFrom3Points(Point p1, Point p2, Point p3) {
-
+/**
+ *  First checks for case where one point can be contained in circle formed by other 2
+ *  If not, creates a circle from 3 points based on the circumcircle of the 3 points 
+ */
+Circle createCircleFrom3Points(Point A, Point B, Point C) {
+    // Check for case if 2 points can contain another one
+    Circle c1 = createCircleFrom2Points(A, B);
+    if (pointInCircle(c1, C)) {
+        return c1;
+    }
+    Circle c2 = createCircleFrom2Points(A, C);
+    if (pointInCircle(c2, B)) {
+        return c2;
+    }
+    Circle c3 = createCircleFrom2Points(B, C);
+    if (pointInCircle(c3, A)) {
+        return c3;
+    }
+    // Create a circumcircle based on the 3 points
+    // Calculate the center point (Based on a Wikipedia formula "Circumcenter Cartesian Coordinates")
+    double d = 2 * (A.x*(B.y - C.y) + B.x*(C.y - A.y) + C.x*(A.y - B.y));
+    double x = ((A.x*A.x + A.y*A.y)*(B.y - C.y) + (B.x*B.x + B.y*B.y)*(C.y - A.y)+(C.x*C.x + C.y*C.y)*(A.y-B.y)) / d;
+    double y = ((A.x*A.x + A.y*A.y)*(C.x - B.x) + (B.x*B.x + B.y*B.y)*(A.x - C.x)+(C.x*C.x + C.y*C.y)*(B.x-A.x)) / d;
+    Point center(x,y);
+    double radius = sqrt((center.x - A.x)*(center.x - A.x) + (center.y - A.y)*(center.y - A.y)) / 2;
+    Circle c4(center, radius);
+    return c4;
 }
 
 
