@@ -7,14 +7,8 @@
  * Sets up the call to emoWelzAlgo function
  */
 Circle findMinCircle(Point** points,size_t size) {
-    vector<Point> pointsAsVector;
-    for (int i = 0; i < size; i++) {
-        Point *p = points[i];
-        Point px(p->x, p->y);
-        pointsAsVector.push_back(px);
-    }
     vector<Point> pointsOnBoundry;
-    return emoWelzlAlgo(pointsAsVector, pointsOnBoundry, size);
+    return emoWelzlAlgo(points, pointsOnBoundry, size);
 }
 /**
  *  Returns true if the point is inside the circle, false otherwise 
@@ -97,26 +91,29 @@ Circle createCircleFrom3Points(Point A, Point B, Point C) {
  * 
  * 
  */
-Circle emoWelzlAlgo(vector<Point> points, vector<Point> pointsOnBoundry, size_t size) {
-    if (points.size() == 0 && pointsOnBoundry.size() == 0) {
+Circle emoWelzlAlgo(Point **points, vector<Point> pointsOnBoundry, size_t size) {
+    if (size == 0 && pointsOnBoundry.size() == 0) {
         return createTrivialCircle();
     }
-    if (points.size() == 0 && pointsOnBoundry.size() == 1) {
+    if (size == 0 && pointsOnBoundry.size() == 1) {
         return createCircleFromPoint(pointsOnBoundry[0]);
     }
-    if (points.size() == 0 && pointsOnBoundry.size() == 2) {
+    if (size == 0 && pointsOnBoundry.size() == 2) {
         return createCircleFrom2Points(pointsOnBoundry[0], pointsOnBoundry[1]);
     }
     if (pointsOnBoundry.size() == 3) {
         return createCircleFrom3Points(pointsOnBoundry[0], pointsOnBoundry[1], pointsOnBoundry[2]);
     }
     int randomIndex = rand() % size;
-    Point randomPoint = points[randomIndex];
-    points.erase(points.begin() + randomIndex);
+    Point *randomPoint = points[randomIndex];
+    // Shuffle the pointer that is to be removed to the end of the pointer array to save time
+    Point *tmp = points[size - 1];
+    points[size - 1] = points[randomIndex];
+    points[randomIndex] = tmp;
     Circle circ = emoWelzlAlgo(points, pointsOnBoundry, size - 1);
-    if (pointInCircle(circ, randomPoint)) {
+    if (pointInCircle(circ, *randomPoint)) {
         return circ;
     }
-    pointsOnBoundry.push_back(randomPoint);
-    return emoWelzlAlgo(points, pointsOnBoundry, size);
+    pointsOnBoundry.push_back(*randomPoint);
+    return emoWelzlAlgo(points, pointsOnBoundry, size - 1);
 }

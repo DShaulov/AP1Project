@@ -22,7 +22,7 @@ public:
 // --------------------------------------
 
 Circle findMinCircle(Point** points,size_t size);
-Circle emoWelzlAlgo(vector<Point> points, vector<Point> pointsOnBoundry, size_t size);
+Circle emoWelzlAlgo(Point** points, vector<Point> pointsOnBoundry, size_t size);
 Circle createTrivialCircle();
 Circle createCircleFromPoint(Point p);
 Circle createCircleFrom2Points(Point p1, Point p2);
