@@ -24,6 +24,10 @@ Point** generate(Point center,int R, size_t size){
 
 
 int main(){
+	Point A(2, 0);
+	Point B(0, 8);
+	Point D(-2, 0);
+	Circle TESTCIRC = createCircleFrom3Points(A, B, D);
 	srand (time(NULL));
 	const size_t N=250;
 	float R=10+rand()%1000;
@@ -48,12 +52,19 @@ int main(){
 		float x2=(c.center.x-ps[i]->x)*(c.center.x-ps[i]->x);
 		float y2=(c.center.y-ps[i]->y)*(c.center.y-ps[i]->y);
 		float d=sqrt(x2+y2);
-		if(d>c.radius+1)
+		if(d>c.radius+1){
 			covered=false;
+			// My Addition:
+			printf("Not covered: (%f, %f)\n", ps[i]->x, ps[i]->y);
+		}
 	}
-	if(!covered)
+	if(!covered) {
 		cout<<"all points should be covered (-45)"<<endl;
-
+		// My Addition:
+		for (int i = 0; i < N; i++){
+			printf("(%f, %f)\n", ps[i]->x, ps[i]->y);
+		}
+	}
 	auto duration = duration_cast<microseconds>(stop - start);
 	int stime=duration.count();
 	cout<<"your time: "<<stime<<" microseconds"<<endl;

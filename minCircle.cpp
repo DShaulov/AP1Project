@@ -23,9 +23,9 @@ bool pointInCircle(Circle circ, Point p) {
     return false;
 }
 /**
- * Create the trivial circle centered at (0,0) with radius 0 
+ * Create a circle centered at (0,0) with radius 0 
  */
-Circle createTrivialCircle() {
+Circle createAxisCircle() {
     Circle c(Point(0,0), 0);
     return c;
 }
@@ -51,7 +51,7 @@ Circle createCircleFrom2Points(Point p1, Point p2) {
  *  If not, creates a circle from 3 points based on the circumcircle of the 3 points 
  */
 Circle createCircleFrom3Points(Point A, Point B, Point C) {
-    // Check for case if 2 points can contain another one
+    // Check for case if circle from 2 points can contain the other one
     Circle c1 = createCircleFrom2Points(A, B);
     if (pointInCircle(c1, C)) {
         return c1;
@@ -70,7 +70,7 @@ Circle createCircleFrom3Points(Point A, Point B, Point C) {
     double x = ((A.x*A.x + A.y*A.y)*(B.y - C.y) + (B.x*B.x + B.y*B.y)*(C.y - A.y)+(C.x*C.x + C.y*C.y)*(A.y-B.y)) / d;
     double y = ((A.x*A.x + A.y*A.y)*(C.x - B.x) + (B.x*B.x + B.y*B.y)*(A.x - C.x)+(C.x*C.x + C.y*C.y)*(B.x-A.x)) / d;
     Point center(x,y);
-    double radius = sqrt((center.x - A.x)*(center.x - A.x) + (center.y - A.y)*(center.y - A.y)) / 2;
+    double radius = sqrt((center.x - A.x)*(center.x - A.x) + (center.y - A.y)*(center.y - A.y));
     Circle c4(center, radius);
     return c4;
 }
@@ -93,7 +93,7 @@ Circle createCircleFrom3Points(Point A, Point B, Point C) {
  */
 Circle emoWelzlAlgo(Point **points, vector<Point> pointsOnBoundry, size_t size) {
     if (size == 0 && pointsOnBoundry.size() == 0) {
-        return createTrivialCircle();
+        return createAxisCircle();
     }
     if (size == 0 && pointsOnBoundry.size() == 1) {
         return createCircleFromPoint(pointsOnBoundry[0]);
