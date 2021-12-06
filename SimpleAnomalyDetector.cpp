@@ -13,8 +13,8 @@ SimpleAnomalyDetector::SimpleAnomalyDetector()
 {
 	vector<correlatedFeatures> vec;
 	this->cf = vec;
-	this->correlationThreshhold = 0.75;
-	this->distanceThreshholdMult = 1.5;
+	this->correlationThreshhold = 0.9;
+	this->distanceThreshholdMult = 1.15;
 }
 
 SimpleAnomalyDetector::~SimpleAnomalyDetector()
@@ -47,12 +47,18 @@ void SimpleAnomalyDetector::learnNormal(const TimeSeries& ts)
 			}
 		}
 		// Check that the features are not too weakly correlated
-		if (prevMaxCorrelation < correlationThreshhold) {
+		if (prevMaxCorrelation < 0.5) {
 			continue;
+		}
+		bool stronglyCorrelated = true;
+		// Check if the features are strongly correlated
+		if (0.5 <= prevMaxCorrelation && prevMaxCorrelation < correlationThreshhold) {
+			stronglyCorrelated = false;
 		}
 		correlatedFeatures relatedFeaturePair;
 		relatedFeaturePair.feature1 = firstFeature;
 		relatedFeaturePair.feature2 = secondFeature;
+		relatedFeaturePair.stronglyCorrelated = stronglyCorrelated;
 		relatedFeaturePair.corrlation = prevMaxCorrelation;
 		vector<float> firstFeatureData = ts1->getFeatureData(firstFeature);
 		vector<float> secondFeatureData = ts1->getFeatureData(secondFeature);
@@ -70,6 +76,10 @@ vector<AnomalyReport> SimpleAnomalyDetector::detect(const TimeSeries &ts)
 	// For each pair of correlated features, go over every row in the time series, 
 	for (int i = 0; i < cf.size(); i++) {
 		correlatedFeatures featurePair = cf[i];
+		// Case where the feature pair is below correlation threshhold
+		if (!featurePair.stronglyCorrelated) {
+			continue;
+		}
 		vector<float> firstFeatureData = ts1->getFeatureData(featurePair.feature1);
 		vector<float> secondFeatureData = ts1->getFeatureData(featurePair.feature2);
 		int dataSize = firstFeatureData.size();
