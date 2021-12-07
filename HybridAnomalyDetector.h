@@ -8,11 +8,12 @@
 
 
 class HybridAnomalyDetector:public SimpleAnomalyDetector {
+	float relaxCircleModifier;
 public:
 	HybridAnomalyDetector();
 	virtual vector<AnomalyReport> detect(const TimeSeries& ts) override;
 	virtual ~HybridAnomalyDetector();
-	virtual void learnNormal(const TimeSeries& ts) override;
+	double distance(Point a, Point b);
 };
 
 #endif /* HYBRIDANOMALYDETECTOR_H_ */

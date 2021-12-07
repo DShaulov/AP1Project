@@ -1,7 +1,7 @@
 /*
  * MainTrain.cpp
  *
- *  Created on: 11 баечЧ 2020
+ *  Created on: 11 пїЅпїЅпїЅпїЅпїЅ 2020
  *      Author: Eli
  */
 
@@ -125,6 +125,8 @@ int main(){
 	int anomaly1=5+rand()%90; // anomaly injected in a random time step
 	int anomaly2=5+rand()%90; // anomaly injected in a random time step
 	int anomaly3=5+rand()%90; // anomaly injected in a random time step
+
+	printf("Anomaly 3 time step: %d\n", anomaly3);
 
 	anomalies.push_back(AnomalyReport("A-B",anomaly1));
 	anomalies.push_back(AnomalyReport("C-D",anomaly2));

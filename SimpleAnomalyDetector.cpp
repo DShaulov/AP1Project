@@ -14,7 +14,7 @@ SimpleAnomalyDetector::SimpleAnomalyDetector()
 	vector<correlatedFeatures> vec;
 	this->cf = vec;
 	this->correlationThreshhold = 0.9;
-	this->distanceThreshholdMult = 1.15;
+	this->distanceThreshholdMult = 1.1;
 }
 
 SimpleAnomalyDetector::~SimpleAnomalyDetector()
