@@ -9,28 +9,6 @@ HybridAnomalyDetector::~HybridAnomalyDetector() {
 	// TODO Auto-generated destructor stub
 }
 
-// void HybridAnomalyDetector::learnNormal(const TimeSeries& ts) {
-// 	TimeSeries *ts1 = new TimeSeries(ts);
-// 	SimpleAnomalyDetector::learnNormal(ts);
-// 	// Go over all weakly correlated features
-// 	printf("Hybrid learn normal\n");
-// 	for (int i = 0; i < SimpleAnomalyDetector::cf.size(); i++) {
-// 		if (!cf[i].stronglyCorrelated) {
-// 			vector<float> firstFeatureData = ts1->getFeatureData(cf[i].feature1);
-// 			vector<float> secondFeatureData = ts1->getFeatureData(cf[i].feature2);
-// 			// Create a point array from data
-// 			Point *arr[firstFeatureData.size()];
-// 			for (int j = 0; j < firstFeatureData.size(); j++) {
-// 				Point *p = new Point(firstFeatureData[j], secondFeatureData[j]);
-// 				arr[j] = p;
-// 			}
-// 			vector<Point> pointsOnBoundry;
-// 			Circle minCircle = *new Circle(emoWelzlAlgo(arr, pointsOnBoundry, firstFeatureData.size()));
-// 			cf[i].minCircle = &minCircle;
-// 		}
-// 	}
-// }
-
 vector<AnomalyReport> HybridAnomalyDetector::detect(const TimeSeries &ts)  {
 	TimeSeries *ts1 = new TimeSeries(ts);
 	vector<AnomalyReport> reportVector = SimpleAnomalyDetector::detect(ts);
@@ -54,12 +32,12 @@ vector<AnomalyReport> HybridAnomalyDetector::detect(const TimeSeries &ts)  {
 				double dist = distance(p, minCircle.center);
 				double relaxedRadius = minCircle.radius * relaxCircleModifier;
 				if (dist > relaxedRadius) {
-					printf("Point not in circle: (%f, %f)\n", p.x, p.y);
-					printf("Time step: %d\n", j);
-					printf("Distance from center: %f\n", dist);
-					printf("Circle radius: %f\n", minCircle.radius);
-					printf("Relaxed radius: %f\n", relaxedRadius);
-					printf("\n");
+					// printf("Point not in circle: (%f, %f)\n", p.x, p.y);
+					// printf("Time step: %d\n", j);
+					// printf("Distance from center: %f\n", dist);
+					// printf("Circle radius: %f\n", minCircle.radius);
+					// printf("Relaxed radius: %f\n", relaxedRadius);
+					// printf("\n");
 					AnomalyReport report(cf[i].feature1 + "-" + cf[i].feature2, j + 1);
 					reportVector.push_back(report);
 				}

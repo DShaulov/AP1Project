@@ -126,7 +126,7 @@ int main(){
 	int anomaly2=5+rand()%90; // anomaly injected in a random time step
 	int anomaly3=5+rand()%90; // anomaly injected in a random time step
 
-	printf("Anomaly 3 time step: %d\n", anomaly3);
+	//printf("Anomaly 3 time step: %d\n", anomaly3);
 
 	anomalies.push_back(AnomalyReport("A-B",anomaly1));
 	anomalies.push_back(AnomalyReport("C-D",anomaly2));
