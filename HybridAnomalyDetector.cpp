@@ -32,12 +32,6 @@ vector<AnomalyReport> HybridAnomalyDetector::detect(const TimeSeries &ts)  {
 				double dist = distance(p, minCircle.center);
 				double relaxedRadius = minCircle.radius * relaxCircleModifier;
 				if (dist > relaxedRadius) {
-					// printf("Point not in circle: (%f, %f)\n", p.x, p.y);
-					// printf("Time step: %d\n", j);
-					// printf("Distance from center: %f\n", dist);
-					// printf("Circle radius: %f\n", minCircle.radius);
-					// printf("Relaxed radius: %f\n", relaxedRadius);
-					// printf("\n");
 					AnomalyReport report(cf[i].feature1 + "-" + cf[i].feature2, j + 1);
 					reportVector.push_back(report);
 				}
