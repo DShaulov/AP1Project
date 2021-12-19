@@ -10,11 +10,15 @@
 using namespace std;
 
 class CLI {
-	DefaultIO* dio;
+	DefaultIO *dio;
+	ifstream *inputFile;
 	vector<Command *> commands;
+	HybridAnomalyDetector *detector;
+	vector<AnomalyReport> *report;
 public:
 	CLI(DefaultIO* dio);
 	void start();
+	void printMenu();
 	virtual ~CLI();
 };
 

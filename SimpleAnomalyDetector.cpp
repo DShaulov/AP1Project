@@ -102,3 +102,7 @@ vector<correlatedFeatures> SimpleAnomalyDetector::getNormalModel()
 {
 	return this->cf;
 }
+
+void SimpleAnomalyDetector::setCorrelationThreshhold(int newThreshhold) {
+	this->correlationThreshhold = newThreshhold;
+}
