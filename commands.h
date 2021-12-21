@@ -75,12 +75,14 @@ class uploadTS:public Command {
 				outputFile.open("anomalyTest.csv");
 			}
 			string line;
+			getline(*inputFile, line);
 			while (true) {
+				outputFile << line;
 				getline(*inputFile, line);
 				if (line == "done") {
 					break;
 				}
-				outputFile << line << "\n";
+				outputFile << "\n";
 			}
 
 			
@@ -137,11 +139,10 @@ class detectAnomaly:public Command {
 		 * 
 		 */
 		void execute() {
-			TimeSeries *tsTrain = new TimeSeries("anomalyTest.csv");
-			TimeSeries *tsTest = new TimeSeries("anomalyTrain.csv");
+			TimeSeries *tsTrain = new TimeSeries("anomalyTrain.csv");
+			TimeSeries *tsTest = new TimeSeries("anomalyTest.csv");
 			this->detector->learnNormal(*tsTrain);
-			vector<AnomalyReport> aReport = this->detector->detect(*tsTest);
-			vector<AnomalyReport> *rep = new vector<AnomalyReport>(aReport);
+			vector<AnomalyReport> *rep = new vector<AnomalyReport>(this->detector->detect(*tsTest));
 			*report = rep;
 			cout << "Anomaly detection complete\n";	
 		}
@@ -176,7 +177,7 @@ class uploadAndAnalyze:public Command {
 	public:
 		uploadAndAnalyze(DefaultIO *dio): Command(dio) {};
 		void execute() {
-			cout << "TODO\n";
+			cout << "Please upload your local anomalies file.\n";
 		}
 };
 /**

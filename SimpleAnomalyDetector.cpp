@@ -62,8 +62,21 @@ void SimpleAnomalyDetector::learnNormal(const TimeSeries& ts)
 		relatedFeaturePair.corrlation = prevMaxCorrelation;
 		vector<float> firstFeatureData = ts1->getFeatureData(firstFeature);
 		vector<float> secondFeatureData = ts1->getFeatureData(secondFeature);
-		relatedFeaturePair.lin_reg = linear_reg(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size());
-		relatedFeaturePair.threshold = farestPoint(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size(), relatedFeaturePair.lin_reg);
+		if (stronglyCorrelated) {
+			relatedFeaturePair.lin_reg = linear_reg(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size());
+			relatedFeaturePair.threshold = farestPoint(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size(), relatedFeaturePair.lin_reg);
+		}
+		else {
+			Point *arr[firstFeatureData.size()];
+			for (int j = 0; j < firstFeatureData.size(); j++) {
+				Point *p = new Point(firstFeatureData[j], secondFeatureData[j]);
+				arr[j] = p;
+			}
+			Circle *minC = new Circle(findMinCircle(arr, firstFeatureData.size()));
+			minC->radius = minC->radius*1.1;
+			relatedFeaturePair.minCircle = minC;
+		}
+		
 		cf.push_back(relatedFeaturePair);
 	}
 }

@@ -28,7 +28,6 @@ void CLI::start(){
     while (true) {
         printMenu();
         string command;
-        //ifstream iFile("./input.txt");
         getline(*inputFile, command);
         int commandType = stoi(command);
         bool exit = false;

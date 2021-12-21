@@ -16,6 +16,7 @@ struct correlatedFeatures{
 	Line lin_reg;
 	float threshold;
 	bool stronglyCorrelated;
+	Circle *minCircle;
 };
 
 

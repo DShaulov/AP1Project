@@ -2,7 +2,7 @@
 #include "HybridAnomalyDetector.h"
 
 HybridAnomalyDetector::HybridAnomalyDetector() {
-	this->relaxCircleModifier = 0.9999;
+	this->relaxCircleModifier = 1.1;
 }
 
 HybridAnomalyDetector::~HybridAnomalyDetector() {
@@ -18,20 +18,11 @@ vector<AnomalyReport> HybridAnomalyDetector::detect(const TimeSeries &ts)  {
 			correlatedFeatures coFeatures = cf[i];
 			vector<float> firstFeatureData = ts1->getFeatureData(coFeatures.feature1);
 			vector<float> secondFeatureData = ts1->getFeatureData(coFeatures.feature2);
-			// Create a point array from data
-			Point *arr[firstFeatureData.size()];
-			for (int j = 0; j < firstFeatureData.size(); j++) {
-				Point *p = new Point(firstFeatureData[j], secondFeatureData[j]);
-				arr[j] = p;
-			}
-			vector<Point> pointsOnBoundry;
-			Circle minCircle = emoWelzlAlgo(arr, pointsOnBoundry, firstFeatureData.size());
 			// Check that each point falls within the min circle
 			for (int j = 0; j < firstFeatureData.size(); j++){
 				Point p(firstFeatureData[j], secondFeatureData[j]);
-				double dist = distance(p, minCircle.center);
-				double relaxedRadius = minCircle.radius * relaxCircleModifier;
-				if (dist > relaxedRadius) {
+				double dist = distance(p, coFeatures.minCircle->center);
+				if (dist > coFeatures.minCircle->radius) {
 					AnomalyReport report(cf[i].feature1 + "-" + cf[i].feature2, j + 1);
 					reportVector.push_back(report);
 				}
