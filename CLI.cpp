@@ -1,3 +1,11 @@
+/**
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
+ * 
+ */
 #include "CLI.h"
 
 enum COMMAND {
@@ -19,7 +27,7 @@ CLI::CLI(DefaultIO* dio) {
         new algSettings(dio, detector, inputFile),
         new detectAnomaly(dio, detector, &(this->report)),
         new displayResults(dio, &(this->report)),
-        new uploadAndAnalyze(dio)
+        new uploadAndAnalyze(dio, detector, inputFile, &(this->report))
     };
     this->commands = commands;
 }
@@ -30,30 +38,10 @@ void CLI::start(){
         string command;
         getline(*inputFile, command);
         int commandType = stoi(command);
-        bool exit = false;
-        switch(commandType) {
-            case UPLOAD_CSV: {
-                commands[UPLOAD_CSV - 1]->execute();
-            } break;
-            case ALG_SETTINGS: {
-                commands[ALG_SETTINGS - 1]->execute();
-            } break;
-            case DETECT_ANOMALIES: {
-                commands[DETECT_ANOMALIES - 1]->execute();
-            } break;
-            case DISPLAY_RESULTS: {
-                commands[DISPLAY_RESULTS - 1]->execute();
-            } break;
-            case UPLOAD_AND_ANALYZE: {
-                commands[UPLOAD_AND_ANALYZE - 1]->execute();
-            } break;
-            default:
-                exit = true;
-                break;
-        }
-        if (exit) {
+        if (commandType < 1 || commandType > 5) {
             break;
         }
+        commands[commandType - 1]->execute();
     }
 }
 

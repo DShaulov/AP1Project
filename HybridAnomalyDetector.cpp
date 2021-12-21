@@ -1,4 +1,11 @@
-
+/**
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
+ * 
+ */
 #include "HybridAnomalyDetector.h"
 
 HybridAnomalyDetector::HybridAnomalyDetector() {

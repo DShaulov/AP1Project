@@ -174,20 +174,95 @@ class displayResults:public Command {
  * Class corresponding to fifth menu option
  */
 class uploadAndAnalyze:public Command {
+	HybridAnomalyDetector *detector;
+	ifstream *inputFile;
+	vector<AnomalyReport> **report;
+	struct Anomaly {
+		int startTimeStep;
+		int endTimeStep;
+		int totalTimeSteps;
+		int truePositives;
+	};
 	public:
-		uploadAndAnalyze(DefaultIO *dio): Command(dio) {};
+		uploadAndAnalyze(DefaultIO *dio, HybridAnomalyDetector *dt, ifstream *iFile, vector<AnomalyReport> **rep): Command(dio) {
+			this->detector = dt;
+			this->inputFile = iFile;
+			this->report = rep;
+		};
+		/**
+		 * @brief Reads anomalies from user, and checks to see how many of them are actually anomalous
+		 */
 		void execute() {
 			cout << "Please upload your local anomalies file.\n";
+			vector<Anomaly *> *reportedAnomalies = new vector<Anomaly *>();
+			string line;
+			while(true) {
+				getline(*inputFile, line);
+				if (line == "done") {
+					break;
+				}
+				Anomaly *report = new Anomaly();
+				report->startTimeStep = stoi(line.substr(0, line.find(",")));
+				report->endTimeStep = stoi(line.substr(line.find(",") + 1, line.length()));
+				report->totalTimeSteps = report->endTimeStep - report->startTimeStep + 1;
+				reportedAnomalies->push_back(report);
+			}
+			int detectedPositives = 0;
+			vector<Anomaly *> *parsedAnomalies = parseAnomalies(&detectedPositives);
+			int reportedAnomaliesSize = reportedAnomalies->size();
+			int parsedAnomaliesSize = parsedAnomalies->size();
+			// For each reported anomaly, compares it to a previously detected anomaly and checks the overlap
+			for (int i = 0; i < reportedAnomaliesSize; i++) {
+				Anomaly *rAnomaly = reportedAnomalies->at(i);
+				for (int j = 0; j < parsedAnomaliesSize; j++) {
+					Anomaly *pAnomaly = parsedAnomalies->at(i);
+					if (rAnomaly->endTimeStep < pAnomaly->startTimeStep) {
+						continue;
+					}
+					if (pAnomaly->endTimeStep < rAnomaly->startTimeStep) {
+						continue;
+					}
+					else {
+						int overlap = pAnomaly->endTimeStep - rAnomaly->startTimeStep;
+						rAnomaly->truePositives = rAnomaly->truePositives + overlap;
+					}
+				}
+			}
+
+			
+		}
+		/**
+		 * @brief Uses anomaly report to parse for each anomaly start time step and end time step.
+		 * 
+		 * @return vector<Anomaly *>* 
+		 */
+		vector<Anomaly *> *parseAnomalies(int *counter) {
+			vector<Anomaly *> *parsedAnomalies  = new vector<Anomaly *>();
+			vector<AnomalyReport> *rep = *(this->report);
+			int reportNum = rep->size();
+			for (int i = 0; i < reportNum; i++) {
+				AnomalyReport aRep = rep->at(i);
+				Anomaly *anomaly = new Anomaly();
+				anomaly->startTimeStep = aRep.timeStep;
+				anomaly->endTimeStep = aRep.timeStep;
+				for (int j = i + 1; j < reportNum; j++) {
+					if (j == reportNum - 1) {
+						anomaly->endTimeStep += 1;
+						i = j;
+						break;
+					}
+					if (rep->at(j).description != aRep.description) {
+						i = j - 1;
+						break;
+					}
+					anomaly->endTimeStep += 1;
+				}
+				anomaly->totalTimeSteps = anomaly->endTimeStep - anomaly->startTimeStep + 1;
+				*counter += 1;
+				parsedAnomalies->push_back(anomaly);
+			}
+			return parsedAnomalies;
 		}
 };
-/**
- * Class corresponding to sixth menu option
- */
-class exit:public Command {
-	void execute() {
-		
-	}
-};
-
 
 #endif /* COMMANDS_H_ */
