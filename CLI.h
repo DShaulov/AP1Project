@@ -1,4 +1,11 @@
-
+/**
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
+ * 
+ */
 
 #ifndef CLI_H_
 #define CLI_H_

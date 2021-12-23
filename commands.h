@@ -1,4 +1,11 @@
-
+/**
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
+ * 
+ */
 
 #ifndef COMMANDS_H_
 #define COMMANDS_H_
@@ -39,6 +46,7 @@ public:
  * Class corresponding to first menu option
  */
 class uploadTS:public Command {
+	DefaultIO *dio;
 	ifstream *inputFile;
 	int *TestCsvLen;
 	private:
@@ -51,19 +59,20 @@ class uploadTS:public Command {
 		 * @brief Construct a new upload T S object
 		 */
 		uploadTS(DefaultIO *dio, ifstream *file, int *testLen) : Command(dio) {
-			inputFile = file;
-			TestCsvLen = testLen;
+			this->inputFile = file;
+			this->TestCsvLen = testLen;
+			this->dio = dio;
 		};
 		/**
 		 * Prompts user for input and call createCSV function
 		 */
 		void execute() {
-			printf("Please upload your local train CSV file.\n");
+			dio->write("Please upload your local train CSV file.\n");
 			createCSV(Train);
-			printf("Upload complete.\n");
-			printf("Please upload your local train CSV file.\n");
+			dio->write("Upload complete.\n");
+			dio->write("Please upload your local test CSV file.\n");
 			createCSV(Test);
-			printf("Upload complete.\n");
+			dio->write("Upload complete.\n");
 		}
 		/**
 		 * Reads from input.txt and writes to train/test csv file.
@@ -99,6 +108,7 @@ class uploadTS:public Command {
  * Class corresponding to second menu option
  */
 class algSettings:public Command {
+	DefaultIO *dio;
 	HybridAnomalyDetector *detector;
 	ifstream *inputFile;
 	public:
@@ -106,8 +116,9 @@ class algSettings:public Command {
 		 * @brief Construct a new alg Settings object
 		 */
 		algSettings(DefaultIO *dio, HybridAnomalyDetector *ad, ifstream *ifile) : Command(dio) {
-			detector = ad;
-			inputFile = ifile;
+			this->detector = ad;
+			this->inputFile = ifile;
+			this->dio = dio;
 		};
 		/**
 		 * @brief Displays the current correlation threshold and gives the option to change it
@@ -117,14 +128,17 @@ class algSettings:public Command {
 			float newThreshold;
 			// Keep querying the user for a nubmer while it is not within 0 < x < 1
 			while (true) { 
-				cout << "The current correlation threshold is " << this->detector->correlationThreshhold << endl;
+				dio->write("The current correlation threshold is ");
+				dio->write(this->detector->correlationThreshhold);
+				dio->write("\n");
+				dio->write("Type a new threshold\n");
 				getline(*inputFile, line);
 				newThreshold = stof(line);
 				if (0 < newThreshold && newThreshold < 1) {
 					detector->correlationThreshhold = newThreshold;
 					break;
 				}
-				cout << "please choose a value between 0 and 1.\n";
+				dio->write("please choose a value between 0 and 1.\n");
 			}
 		}
 };
@@ -132,12 +146,14 @@ class algSettings:public Command {
  * Class corresponding to third menu option
  */
 class detectAnomaly:public Command {
+	DefaultIO *dio;
 	HybridAnomalyDetector *detector;
 	vector<AnomalyReport> **report;
 	public:
 		detectAnomaly(DefaultIO *dio, HybridAnomalyDetector *ad, vector<AnomalyReport> **reportPointer): Command(dio) {
 			this->detector = ad;
-			report = reportPointer;
+			this->report = reportPointer;
+			this->dio = dio;
 		}	
 		/**
 		 * @brief Runs the hybrid algorithm on the uploaded CSV files
@@ -149,13 +165,14 @@ class detectAnomaly:public Command {
 			this->detector->learnNormal(*tsTrain);
 			vector<AnomalyReport> *rep = new vector<AnomalyReport>(this->detector->detect(*tsTest));
 			*report = rep;
-			cout << "Anomaly detection complete\n";	
+			dio->write("anomaly detection complete.\n");
 		}
 };
 /**
  * Class corresponding to fourth menu option
  */
 class displayResults:public Command {
+	DefaultIO *dio;
 	vector<AnomalyReport> **report;
 	public:
 		/**
@@ -163,6 +180,7 @@ class displayResults:public Command {
 		 */
 		displayResults(DefaultIO *dio, vector<AnomalyReport> **rep): Command(dio) {
 			this->report = rep;
+			this->dio = dio;
 		};
 		/**
 		 * @brief Prints the anomaly report
@@ -171,14 +189,19 @@ class displayResults:public Command {
 			vector<AnomalyReport> rep = **(this->report);
 			int vecLength = rep.size();
 			for (int i = 0; i < vecLength; i++) {
-				cout << rep[i].timeStep << "\t" << rep[i].description << endl;
+				dio->write(rep[i].timeStep);
+				dio->write("\t");
+				dio->write(rep[i].description);
+				dio->write("\n");
 			}
+			dio->write("Done.\n");
 		}
 };
 /**
  * Class corresponding to fifth menu option
  */
 class uploadAndAnalyze:public Command {
+	DefaultIO *dio;
 	HybridAnomalyDetector *detector;
 	ifstream *inputFile;
 	vector<AnomalyReport> **report;
@@ -196,12 +219,13 @@ class uploadAndAnalyze:public Command {
 			this->inputFile = iFile;
 			this->report = rep;
 			this->testCsvLen = testCsvLen;
+			this->dio = dio;
 		};
 		/**
 		 * @brief Reads anomalies from user, and checks to see how many of them are actually anomalous
 		 */
 		void execute() {
-			cout << "Please upload your local anomalies file.\n";
+			dio->write("Please upload your local anomalies file.\n");
 			vector<Anomaly *> *reportedAnomalies = new vector<Anomaly *>();
 			string line;
 			int totalReportedTimeSteps = 0;
@@ -217,6 +241,7 @@ class uploadAndAnalyze:public Command {
 				totalReportedTimeSteps += report->totalTimeSteps;
 				reportedAnomalies->push_back(report);
 			}
+			dio->write("Upload complete.\n");
 			int detectedPositives = 0;
 			int numTruePositives = 0;
 			vector<Anomaly *> *parsedAnomalies = parseAnomalies(&detectedPositives);
@@ -254,9 +279,12 @@ class uploadAndAnalyze:public Command {
 			int N = *testCsvLen - totalReportedTimeSteps;
 			double falsePositiveRate = (1.0*falsePositiveCounter) / (1.0*N);
 			double falsePositiveRateRounded = floor(falsePositiveRate * 1000.0) / 1000.0; 
-
-			printf("True Positive Rate: %.3g\n", truePositiveRateRounded);
-			printf("False Positive Rate: %.3g\n", falsePositiveRateRounded);
+			dio->write("True Positive Rate: ");
+			dio->write(truePositiveRateRounded);
+			dio->write("\n");
+			dio->write("False Positive Rate: ");
+			dio->write(falsePositiveRateRounded);
+			dio->write("\n");
 		}
 
 		/**

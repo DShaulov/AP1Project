@@ -47,13 +47,13 @@ void CLI::start(){
 }
 
 void CLI::printMenu() {
-    cout << "Welcome to the Anomaly Detection Server.\nPlease choose an option:\n"; 
-    cout << "1. upload a time series csv file\n";
-    cout << "2. algorithm settings\n";
-    cout << "3. detect anomalies\n";
-    cout << "4. display results\n";
-    cout << "5. upload anomalies and analyze results\n";
-    cout << "6. exit\n";
+    dio->write("Welcome to the Anomaly Detection Server.\nPlease choose an option:\n"); 
+    dio->write("1.upload a time series csv file\n");
+    dio->write("2.algorithm settings\n");
+    dio->write("3.detect anomalies\n");
+    dio->write("4.display results\n");
+    dio->write("5.upload anomalies and analyze results\n");
+    dio->write("6.exit\n");
 }
 
 CLI::~CLI() {
