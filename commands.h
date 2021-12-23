@@ -40,6 +40,7 @@ public:
  */
 class uploadTS:public Command {
 	ifstream *inputFile;
+	int *TestCsvLen;
 	private:
 		enum uploadType {
 			Train,
@@ -49,8 +50,9 @@ class uploadTS:public Command {
 		/**
 		 * @brief Construct a new upload T S object
 		 */
-		uploadTS(DefaultIO *dio, ifstream *file) : Command(dio) {
+		uploadTS(DefaultIO *dio, ifstream *file, int *testLen) : Command(dio) {
 			inputFile = file;
+			TestCsvLen = testLen;
 		};
 		/**
 		 * Prompts user for input and call createCSV function
@@ -78,6 +80,9 @@ class uploadTS:public Command {
 			getline(*inputFile, line);
 			while (true) {
 				outputFile << line;
+				if (type == Test) {
+					*TestCsvLen += 1;
+				}
 				getline(*inputFile, line);
 				if (line == "done") {
 					break;
@@ -177,17 +182,20 @@ class uploadAndAnalyze:public Command {
 	HybridAnomalyDetector *detector;
 	ifstream *inputFile;
 	vector<AnomalyReport> **report;
+	int *testCsvLen;
 	struct Anomaly {
 		int startTimeStep;
 		int endTimeStep;
 		int totalTimeSteps;
-		int truePositives;
+		int numTruePositives;
+		bool isTruePositive;
 	};
 	public:
-		uploadAndAnalyze(DefaultIO *dio, HybridAnomalyDetector *dt, ifstream *iFile, vector<AnomalyReport> **rep): Command(dio) {
+		uploadAndAnalyze(DefaultIO *dio, HybridAnomalyDetector *dt, ifstream *iFile, vector<AnomalyReport> **rep, int *testCsvLen): Command(dio) {
 			this->detector = dt;
 			this->inputFile = iFile;
 			this->report = rep;
+			this->testCsvLen = testCsvLen;
 		};
 		/**
 		 * @brief Reads anomalies from user, and checks to see how many of them are actually anomalous
@@ -196,6 +204,7 @@ class uploadAndAnalyze:public Command {
 			cout << "Please upload your local anomalies file.\n";
 			vector<Anomaly *> *reportedAnomalies = new vector<Anomaly *>();
 			string line;
+			int totalReportedTimeSteps = 0;
 			while(true) {
 				getline(*inputFile, line);
 				if (line == "done") {
@@ -205,9 +214,11 @@ class uploadAndAnalyze:public Command {
 				report->startTimeStep = stoi(line.substr(0, line.find(",")));
 				report->endTimeStep = stoi(line.substr(line.find(",") + 1, line.length()));
 				report->totalTimeSteps = report->endTimeStep - report->startTimeStep + 1;
+				totalReportedTimeSteps += report->totalTimeSteps;
 				reportedAnomalies->push_back(report);
 			}
 			int detectedPositives = 0;
+			int numTruePositives = 0;
 			vector<Anomaly *> *parsedAnomalies = parseAnomalies(&detectedPositives);
 			int reportedAnomaliesSize = reportedAnomalies->size();
 			int parsedAnomaliesSize = parsedAnomalies->size();
@@ -215,7 +226,7 @@ class uploadAndAnalyze:public Command {
 			for (int i = 0; i < reportedAnomaliesSize; i++) {
 				Anomaly *rAnomaly = reportedAnomalies->at(i);
 				for (int j = 0; j < parsedAnomaliesSize; j++) {
-					Anomaly *pAnomaly = parsedAnomalies->at(i);
+					Anomaly *pAnomaly = parsedAnomalies->at(j);
 					if (rAnomaly->endTimeStep < pAnomaly->startTimeStep) {
 						continue;
 					}
@@ -223,14 +234,31 @@ class uploadAndAnalyze:public Command {
 						continue;
 					}
 					else {
-						int overlap = pAnomaly->endTimeStep - rAnomaly->startTimeStep;
-						rAnomaly->truePositives = rAnomaly->truePositives + overlap;
+						int overlap = rAnomaly->endTimeStep - pAnomaly->startTimeStep + 1;
+						rAnomaly->numTruePositives = rAnomaly->numTruePositives + overlap;
+						numTruePositives += overlap;
+						pAnomaly->isTruePositive = true;
 					}
 				}
 			}
+			// Count how many true positive reports are there
+			int truePositiveCounter = 0;
+			for (int i = 0; i < parsedAnomaliesSize; i++) {
+				if (parsedAnomalies->at(i)->isTruePositive) {
+					truePositiveCounter += 1;
+				}
+			}
+			int falsePositiveCounter = parsedAnomaliesSize - truePositiveCounter;
+			float truePositiveRate = static_cast<float>(truePositiveCounter) / static_cast<float>(reportedAnomaliesSize);
+			double truePositiveRateRounded = floor(truePositiveRate * 1000.0) / 1000.0; 
+			int N = *testCsvLen - totalReportedTimeSteps;
+			double falsePositiveRate = (1.0*falsePositiveCounter) / (1.0*N);
+			double falsePositiveRateRounded = floor(falsePositiveRate * 1000.0) / 1000.0; 
 
-			
+			printf("True Positive Rate: %.3g\n", truePositiveRateRounded);
+			printf("False Positive Rate: %.3g\n", falsePositiveRateRounded);
 		}
+
 		/**
 		 * @brief Uses anomaly report to parse for each anomaly start time step and end time step.
 		 * 
@@ -258,7 +286,7 @@ class uploadAndAnalyze:public Command {
 					anomaly->endTimeStep += 1;
 				}
 				anomaly->totalTimeSteps = anomaly->endTimeStep - anomaly->startTimeStep + 1;
-				*counter += 1;
+				*counter += anomaly->totalTimeSteps;
 				parsedAnomalies->push_back(anomaly);
 			}
 			return parsedAnomalies;
