@@ -22,13 +22,14 @@ CLI::CLI(DefaultIO* dio) {
     this->detector = new HybridAnomalyDetector();
     this->inputFile = new ifstream("./input.txt");
     this->report = new vector<AnomalyReport>();
+    this->anomalyVector = new vector<Anomaly *>();
     this->TestCsvLen = -1;
     vector<Command *> commands = {
         new uploadTS(dio, inputFile, &TestCsvLen),
         new algSettings(dio, detector, inputFile),
-        new detectAnomaly(dio, detector, &(this->report)),
+        new detectAnomaly(dio, detector, &(this->report), this->anomalyVector),
         new displayResults(dio, &(this->report)),
-        new uploadAndAnalyze(dio, detector, inputFile, &(this->report), &TestCsvLen)
+        new uploadAndAnalyze(dio, detector, inputFile, &(this->report), &TestCsvLen, anomalyVector)
     };
     this->commands = commands;
 }

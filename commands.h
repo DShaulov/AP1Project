@@ -31,7 +31,13 @@ public:
 };
 
 // you may add here helper classes
-
+struct Anomaly {
+	int startTimeStep;
+	int endTimeStep;
+	int totalTimeSteps;
+	int numTruePositives;
+	bool isTruePositive;
+};
 // you may edit this class
 class Command{
 	DefaultIO* dio;
@@ -87,12 +93,18 @@ class uploadTS:public Command {
 			}
 			string line;
 			getline(*inputFile, line);
+			if (line.back() == '\r') {
+				line = line.substr(0, line.size() - 1);
+			}
 			while (true) {
 				outputFile << line;
 				if (type == Test) {
 					*TestCsvLen += 1;
 				}
 				getline(*inputFile, line);
+				if (line.back() == '\r') {
+					line = line.substr(0, line.size() - 1);
+				}
 				if (line == "done") {
 					break;
 				}
@@ -149,11 +161,13 @@ class detectAnomaly:public Command {
 	DefaultIO *dio;
 	HybridAnomalyDetector *detector;
 	vector<AnomalyReport> **report;
+	vector<Anomaly *> *anomalyVec;
 	public:
-		detectAnomaly(DefaultIO *dio, HybridAnomalyDetector *ad, vector<AnomalyReport> **reportPointer): Command(dio) {
+		detectAnomaly(DefaultIO *dio, HybridAnomalyDetector *ad, vector<AnomalyReport> **reportPointer, vector<Anomaly *> *aVec): Command(dio) {
 			this->detector = ad;
 			this->report = reportPointer;
 			this->dio = dio;
+			this->anomalyVec = aVec;
 		}	
 		/**
 		 * @brief Runs the hybrid algorithm on the uploaded CSV files
@@ -162,10 +176,41 @@ class detectAnomaly:public Command {
 		void execute() {
 			TimeSeries *tsTrain = new TimeSeries("anomalyTrain.csv");
 			TimeSeries *tsTest = new TimeSeries("anomalyTest.csv");
+			this->detector->cf.clear();
 			this->detector->learnNormal(*tsTrain);
-			vector<AnomalyReport> *rep = new vector<AnomalyReport>(this->detector->detect(*tsTest));
-			*report = rep;
+			vector<AnomalyReport> *detectReport = new vector<AnomalyReport>(this->detector->detect(*tsTest));
+			*report = detectReport;
+			parseAnomalies(detectReport, this->anomalyVec);
 			dio->write("anomaly detection complete.\n");
+		}
+
+		/**
+		 * @brief Uses anomaly report to parse for each anomaly start time step and end time step.
+		 */
+		void parseAnomalies(vector<AnomalyReport> *anomalyReport, vector<Anomaly *> *anomalyVector) {
+			vector<Anomaly *> *parsedAnomalies  = new vector<Anomaly *>();
+			vector<AnomalyReport> *rep = anomalyReport;
+			int reportNum = rep->size();
+			for (int i = 0; i < reportNum; i++) {
+				AnomalyReport aRep = rep->at(i);
+				Anomaly *anomaly = new Anomaly();
+				anomaly->startTimeStep = aRep.timeStep;
+				anomaly->endTimeStep = aRep.timeStep;
+				for (int j = i + 1; j < reportNum; j++) {
+					if (j == reportNum - 1) {
+						anomaly->endTimeStep += 1;
+						i = j;
+						break;
+					}
+					if (rep->at(j).description != aRep.description) {
+						i = j - 1;
+						break;
+					}
+					anomaly->endTimeStep += 1;
+				}
+				anomaly->totalTimeSteps = anomaly->endTimeStep - anomaly->startTimeStep + 1;
+				anomalyVector->push_back(anomaly);
+			}
 		}
 };
 /**
@@ -190,7 +235,7 @@ class displayResults:public Command {
 			int vecLength = rep.size();
 			for (int i = 0; i < vecLength; i++) {
 				dio->write(rep[i].timeStep);
-				dio->write("\t");
+				dio->write(" \t");
 				dio->write(rep[i].description);
 				dio->write("\n");
 			}
@@ -205,21 +250,16 @@ class uploadAndAnalyze:public Command {
 	HybridAnomalyDetector *detector;
 	ifstream *inputFile;
 	vector<AnomalyReport> **report;
+	vector<Anomaly *> *anomalyVector;
 	int *testCsvLen;
-	struct Anomaly {
-		int startTimeStep;
-		int endTimeStep;
-		int totalTimeSteps;
-		int numTruePositives;
-		bool isTruePositive;
-	};
 	public:
-		uploadAndAnalyze(DefaultIO *dio, HybridAnomalyDetector *dt, ifstream *iFile, vector<AnomalyReport> **rep, int *testCsvLen): Command(dio) {
+		uploadAndAnalyze(DefaultIO *dio, HybridAnomalyDetector *dt, ifstream *iFile, vector<AnomalyReport> **rep, int *testCsvLen, vector<Anomaly *> *aVector): Command(dio) {
 			this->detector = dt;
 			this->inputFile = iFile;
 			this->report = rep;
 			this->testCsvLen = testCsvLen;
 			this->dio = dio;
+			this->anomalyVector = aVector;
 		};
 		/**
 		 * @brief Reads anomalies from user, and checks to see how many of them are actually anomalous
@@ -231,6 +271,9 @@ class uploadAndAnalyze:public Command {
 			int totalReportedTimeSteps = 0;
 			while(true) {
 				getline(*inputFile, line);
+				if (line.back() == '\r') {
+					line = line.substr(0, line.size() - 1);
+				}
 				if (line == "done") {
 					break;
 				}
@@ -242,11 +285,13 @@ class uploadAndAnalyze:public Command {
 				reportedAnomalies->push_back(report);
 			}
 			dio->write("Upload complete.\n");
-			int detectedPositives = 0;
 			int numTruePositives = 0;
-			vector<Anomaly *> *parsedAnomalies = parseAnomalies(&detectedPositives);
-			int reportedAnomaliesSize = reportedAnomalies->size();
+			vector<Anomaly *> *parsedAnomalies = this->anomalyVector;
 			int parsedAnomaliesSize = parsedAnomalies->size();
+			for (int i = 0; i < parsedAnomaliesSize; i++) {
+				parsedAnomalies->at(i)->isTruePositive = false;
+			}
+			int reportedAnomaliesSize = reportedAnomalies->size();
 			// For each reported anomaly, compares it to a previously detected anomaly and checks the overlap
 			for (int i = 0; i < reportedAnomaliesSize; i++) {
 				Anomaly *rAnomaly = reportedAnomalies->at(i);
@@ -263,14 +308,20 @@ class uploadAndAnalyze:public Command {
 						rAnomaly->numTruePositives = rAnomaly->numTruePositives + overlap;
 						numTruePositives += overlap;
 						pAnomaly->isTruePositive = true;
+						break;
 					}
 				}
 			}
 			// Count how many true positive reports are there
 			int truePositiveCounter = 0;
+			int falsePositiveTimeSteps = 0;
 			for (int i = 0; i < parsedAnomaliesSize; i++) {
+				Anomaly *anomaly = parsedAnomalies->at(i);
 				if (parsedAnomalies->at(i)->isTruePositive) {
 					truePositiveCounter += 1;
+				}
+				else {
+					falsePositiveTimeSteps += anomaly->totalTimeSteps;
 				}
 			}
 			int falsePositiveCounter = parsedAnomaliesSize - truePositiveCounter;
@@ -285,39 +336,6 @@ class uploadAndAnalyze:public Command {
 			dio->write("False Positive Rate: ");
 			dio->write(falsePositiveRateRounded);
 			dio->write("\n");
-		}
-
-		/**
-		 * @brief Uses anomaly report to parse for each anomaly start time step and end time step.
-		 * 
-		 * @return vector<Anomaly *>* 
-		 */
-		vector<Anomaly *> *parseAnomalies(int *counter) {
-			vector<Anomaly *> *parsedAnomalies  = new vector<Anomaly *>();
-			vector<AnomalyReport> *rep = *(this->report);
-			int reportNum = rep->size();
-			for (int i = 0; i < reportNum; i++) {
-				AnomalyReport aRep = rep->at(i);
-				Anomaly *anomaly = new Anomaly();
-				anomaly->startTimeStep = aRep.timeStep;
-				anomaly->endTimeStep = aRep.timeStep;
-				for (int j = i + 1; j < reportNum; j++) {
-					if (j == reportNum - 1) {
-						anomaly->endTimeStep += 1;
-						i = j;
-						break;
-					}
-					if (rep->at(j).description != aRep.description) {
-						i = j - 1;
-						break;
-					}
-					anomaly->endTimeStep += 1;
-				}
-				anomaly->totalTimeSteps = anomaly->endTimeStep - anomaly->startTimeStep + 1;
-				*counter += anomaly->totalTimeSteps;
-				parsedAnomalies->push_back(anomaly);
-			}
-			return parsedAnomalies;
 		}
 };
 

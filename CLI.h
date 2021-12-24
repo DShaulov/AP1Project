@@ -22,6 +22,7 @@ class CLI {
 	vector<Command *> commands;
 	HybridAnomalyDetector *detector;
 	vector<AnomalyReport> *report;
+	vector<Anomaly *> *anomalyVector;
 	int TestCsvLen;
 public:
 	CLI(DefaultIO* dio);
