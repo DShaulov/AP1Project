@@ -92,23 +92,15 @@ class uploadTS:public Command {
 				outputFile.open("anomalyTest.csv");
 			}
 			string line;
-			getline(*inputFile, line);
-			if (line.back() == '\r') {
-				line = line.substr(0, line.size() - 1);
-			}
 			while (true) {
-				outputFile << line;
+				line = dio->read();
 				if (type == Test) {
 					*TestCsvLen += 1;
-				}
-				getline(*inputFile, line);
-				if (line.back() == '\r') {
-					line = line.substr(0, line.size() - 1);
 				}
 				if (line == "done") {
 					break;
 				}
-				outputFile << "\n";
+				outputFile << line << endl;
 			}
 
 			
@@ -144,7 +136,7 @@ class algSettings:public Command {
 				dio->write(this->detector->correlationThreshhold);
 				dio->write("\n");
 				dio->write("Type a new threshold\n");
-				getline(*inputFile, line);
+				line = dio->read();
 				newThreshold = stof(line);
 				if (0 < newThreshold && newThreshold < 1) {
 					detector->correlationThreshhold = newThreshold;
@@ -197,16 +189,20 @@ class detectAnomaly:public Command {
 				anomaly->startTimeStep = aRep.timeStep;
 				anomaly->endTimeStep = aRep.timeStep;
 				for (int j = i + 1; j < reportNum; j++) {
-					if (j == reportNum - 1) {
-						anomaly->endTimeStep += 1;
-						i = j;
-						break;
+					// If both reports have same description and matching time frames
+					AnomalyReport nextARep = rep->at(j);
+					if (aRep.description == nextARep.description) {
+						if (anomaly->endTimeStep + 1 == nextARep.timeStep) {
+							anomaly->endTimeStep += 1;
+							if (j == reportNum - 1) {
+								i = j;
+							}
+							continue;
+						}
 					}
-					if (rep->at(j).description != aRep.description) {
-						i = j - 1;
-						break;
-					}
-					anomaly->endTimeStep += 1;
+					// Case where its not the same anomaly/ different time steps
+					i = j- 1;
+					break;
 				}
 				anomaly->totalTimeSteps = anomaly->endTimeStep - anomaly->startTimeStep + 1;
 				anomalyVector->push_back(anomaly);
@@ -270,7 +266,7 @@ class uploadAndAnalyze:public Command {
 			string line;
 			int totalReportedTimeSteps = 0;
 			while(true) {
-				getline(*inputFile, line);
+				line = dio->read();
 				if (line.back() == '\r') {
 					line = line.substr(0, line.size() - 1);
 				}

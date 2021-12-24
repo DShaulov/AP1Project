@@ -14,7 +14,7 @@ SimpleAnomalyDetector::SimpleAnomalyDetector()
 	vector<correlatedFeatures> vec;
 	this->cf = vec;
 	this->correlationThreshhold = 0.9;
-	this->distanceThreshholdMult = 1.1;
+	this->distanceThreshholdMult = 1.0;
 }
 
 SimpleAnomalyDetector::~SimpleAnomalyDetector()
@@ -64,7 +64,7 @@ void SimpleAnomalyDetector::learnNormal(const TimeSeries& ts)
 		vector<float> secondFeatureData = ts1->getFeatureData(secondFeature);
 		if (stronglyCorrelated) {
 			relatedFeaturePair.lin_reg = linear_reg(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size());
-			relatedFeaturePair.threshold = farestPoint(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size(), relatedFeaturePair.lin_reg);
+			relatedFeaturePair.threshold = farestPoint(&firstFeatureData[0], &secondFeatureData[0], firstFeatureData.size(), relatedFeaturePair.lin_reg) * 1.1;
 		}
 		else {
 			Point *arr[firstFeatureData.size()];

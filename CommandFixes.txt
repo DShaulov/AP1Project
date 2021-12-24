@@ -1,0 +1,2 @@
+1. Multiplied 1.1 correlated feature threshold
+2. For every threshold should be same anomalies detected with testCSV

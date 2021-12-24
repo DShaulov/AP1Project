@@ -23,7 +23,7 @@ CLI::CLI(DefaultIO* dio) {
     this->inputFile = new ifstream("./input.txt");
     this->report = new vector<AnomalyReport>();
     this->anomalyVector = new vector<Anomaly *>();
-    this->TestCsvLen = -1;
+    this->TestCsvLen = -2; // one for title line and one for empty line at the bottom
     vector<Command *> commands = {
         new uploadTS(dio, inputFile, &TestCsvLen),
         new algSettings(dio, detector, inputFile),
@@ -38,7 +38,7 @@ void CLI::start(){
     while (true) {
         printMenu();
         string command;
-        getline(*inputFile, command);
+        command = dio->read();
         int commandType = stoi(command);
         if (commandType < 1 || commandType > 5) {
             break;
