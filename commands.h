@@ -231,9 +231,7 @@ class displayResults:public Command {
 			int vecLength = rep.size();
 			for (int i = 0; i < vecLength; i++) {
 				dio->write(rep[i].timeStep);
-				dio->write(" \t");
-				dio->write(rep[i].description);
-				dio->write("\n");
+				dio->write("\t " + rep[i].description + "\n");
 			}
 			dio->write("Done.\n");
 		}
