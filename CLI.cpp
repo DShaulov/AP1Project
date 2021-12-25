@@ -48,7 +48,8 @@ void CLI::start(){
 }
 
 void CLI::printMenu() {
-    dio->write("Welcome to the Anomaly Detection Server.\nPlease choose an option:\n"); 
+    dio->write("Welcome to the Anomaly Detection Server.\n"); 
+    dio->write("Please choose an option:\n");
     dio->write("1.upload a time series csv file\n");
     dio->write("2.algorithm settings\n");
     dio->write("3.detect anomalies\n");

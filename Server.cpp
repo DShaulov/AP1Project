@@ -1,13 +1,14 @@
-
-#include "Server.h"
 /**
- * @brief Handles SIGALRM signal emitted by alarm timeout
+ * 
+ * Authors:
+ * 317005403 David Shaulov,
+ * 205544109 Yonatan Zilber
+ * 
  * 
  */
-void handleTimeOut(int signalCode) {
-	printf("Accept timed out\n");
-}
 
+
+#include "Server.h"
 /**
  * @brief Construct a new Server:: Server object
  * Creates a socket for the server
@@ -41,17 +42,18 @@ void Server::start(ClientHandler& ch)throw(const char*){
 		throw "listen Exception\n";
 	}
 	// Set socket timeout time
-	// this->timeout.tv_sec = this->socketTimeoutDuration;
-	// this->timeout.tv_usec = 0;
-	// int socketOptionSetCode = setsockopt(this->socketFD, SOL_SOCKET, SO_RCVTIMEO, &(this->timeout), sizeof(this->timeout));
-	// if (socketOptionSetCode < 0) {
-	// 	throw "setsockopt Exception";
-	// }
+	this->timeout.tv_sec = this->socketTimeoutDuration;
+	this->timeout.tv_usec = 0;
+	int socketOptionSetCode = setsockopt(this->socketFD, SOL_SOCKET, SO_RCVTIMEO, &(this->timeout), sizeof(this->timeout));
+	if (socketOptionSetCode < 0) {
+		throw "setsockopt Exception";
+	}
+	// Create a callable function for client handling multithreading
 	auto clientCallable = [&ch](int clientID) -> void {
 		ch.handle(clientID);
 		close(clientID);
 	};
-	// Create a callable object for the thread
+	// Create a callable function for the server thread
 	auto serverCallable = [this, clientCallable]() -> void {
 		while(true) {
 			if (this->isStopped) {

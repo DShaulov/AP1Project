@@ -96,12 +96,17 @@ void clientSide2(int port,string outputFile)throw (const char*){
 	string input="";
 	while(input!="6"){
 		readMenue(out,serverFD);
-		getline(in,input);			
+		getline(in,input);
+		input.pop_back();
+		if (input == "2" || input == "4") {
+			continue;
+		}
 		writeStr(input,serverFD);
 		if(input=="1"){
 			out<<readStr(serverFD)<<endl; // please upload...
 			while(input!="done"){
 				getline(in,input);
+				input.pop_back();
 				writeStr(input,serverFD);
 			}
 			out<<readStr(serverFD)<<endl; // Upload complete
@@ -109,9 +114,15 @@ void clientSide2(int port,string outputFile)throw (const char*){
 			input="";
 			while(input!="done"){
 				getline(in,input);
+				input.pop_back();
 				writeStr(input,serverFD);
 			}
 			out<<readStr(serverFD)<<endl; // Upload complete
+		}
+		if(input=="2"){
+			getline(in,input);
+			input.pop_back();
+			continue;
 		}
 		
 		if(input=="3"){
@@ -121,6 +132,7 @@ void clientSide2(int port,string outputFile)throw (const char*){
 			out<<readStr(serverFD)<<endl; // please upload...
 			while(input!="done"){
 				getline(in,input);
+				input.pop_back();
 				writeStr(input,serverFD);
 			}
 			out<<readStr(serverFD)<<endl; // Upload complete

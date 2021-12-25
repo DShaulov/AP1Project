@@ -1,3 +1,4 @@
+
 /*
  * Server.h
  *
@@ -55,13 +56,30 @@ class SocketIO: public DefaultIO{
 			return clientString;
 		}
 		virtual void write(string text) {
-			const char *nullTerminatedString = text.c_str();
-			int sizeOfText = sizeof(nullTerminatedString);
-			send(clientSocket, nullTerminatedString, sizeOfText, 0);
+			const char *cString = text.data();
+			int sizeOfText = strlen(cString);
+			int sendCode = send(clientSocket, cString, sizeOfText, 0);
+			if (sendCode < 0) {
+				cout << "Send Exception\n";
+			}
 		}
 		virtual void write(float f) {
 			// Possible bug, conversion not always accurate
 			string floatToString = to_string(f);
+			// Format the float string
+			int stringSize = floatToString.size();
+			if (stringSize > 5) {
+				floatToString = floatToString.substr(0, 5);
+			}
+			// Strip trailing zeroes or '.' in case of whole number
+			for (int i = 4; 0 < i ; i--) {
+				if (floatToString[i] == '0' || floatToString[i] == '.') {
+					floatToString.pop_back();
+				}
+				else {
+					break;
+				}
+			}
 			write(floatToString);
 
 		}
